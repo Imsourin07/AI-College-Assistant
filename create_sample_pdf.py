@@ -1,0 +1,95 @@
+import os
+import sys
+
+# Standard minimal PDF file writer in Python without third-party dependencies
+pdf_content = """%PDF-1.4
+1 0 obj
+<<
+  /Type /Catalog
+  /Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+  /Type /Pages
+  /Kids [ 3 0 R ]
+  /Count 1
+>>
+endobj
+
+3 0 obj
+<<
+  /Type /Page
+  /Parent 2 0 R
+  /Resources <<
+    /Font <<
+      /F1 4 0 R
+    >>
+  >>
+  /MediaBox [ 0 0 612 792 ]
+  /Contents 5 0 R
+>>
+endobj
+
+4 0 obj
+<<
+  /Type /Font
+  /Subtype /Type1
+  /BaseFont /Helvetica
+>>
+endobj
+
+5 0 obj
+<<
+  /Length 550
+>>
+stream
+BT
+/F1 18 Tf
+50 720 Td
+(WEST BENGAL UNIVERSITY OF TECHNOLOGY - CSE 5TH SEM) Tj
+0 -30 Td
+/F1 14 Tf
+(SUBJECT: OPERATING SYSTEMS (CS501)) Tj
+0 -30 Td
+/F1 11 Tf
+(Module 1: Introduction to OS, System Calls, System Programs, Kernel Architecture.) Tj
+0 -20 Td
+(Module 2: Process Management, Threading, FCFS, SJF, Round Robin CPU Scheduling.) Tj
+0 -20 Td
+(Module 3: Concurrency, Semaphores, Critical Section, Banker's Deadlock Algorithm.) Tj
+0 -20 Td
+(Module 4: Memory Management, Paging, Segmentation, Demand Paging, LRU Page Replacement.) Tj
+0 -20 Td
+(Module 5: File Systems, Disk Scheduling FCFS, SCAN, C-SCAN, Protection & Security.) Tj
+0 -40 Td
+/F1 12 Tf
+(Recommended Textbooks: Silberschatz & Galvin Operating System Concepts 10th Ed.) Tj
+ET
+endstream
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000216 00000 n 
+0000000287 00000 n 
+trailer
+<<
+  /Size 6
+  /Root 1 0 R
+>>
+startxref
+887
+%%EOF
+"""
+
+output_path = "/Users/imsourin07/.gemini/antigravity-ide/scratch/ai-college-assistant/OS_5th_Sem_Syllabus.pdf"
+with open(output_path, "wb") as f:
+    f.write(pdf_content.encode("latin-1"))
+
+print(f"Sample PDF created at: {output_path}")
