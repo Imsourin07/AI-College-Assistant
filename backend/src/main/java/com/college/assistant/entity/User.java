@@ -1,7 +1,9 @@
 package com.college.assistant.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,9 +22,10 @@ public class User {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -30,21 +33,14 @@ public class User {
     private String semester;
 
     @Column(length = 20)
-    private String role;
+    @Builder.Default
+    private String role = "STUDENT";
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (role == null) {
-            role = "STUDENT";
-        }
-        if (semester == null) {
-            semester = "5th Sem";
-        }
+        this.createdAt = LocalDateTime.now();
     }
 }

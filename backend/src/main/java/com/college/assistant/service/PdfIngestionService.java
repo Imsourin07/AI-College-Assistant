@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,19 +26,19 @@ public class PdfIngestionService {
     @Autowired
     private DocumentChunkRepository documentChunkRepository;
 
-    public Document processAndStorePdf(MultipartFile file, String semester, String subject, String uploadedBy) throws IOException {
-        // Save document record
+    @Transactional(rollbackFor = Exception.class)
+    public Document processAndStorePdf(MultipartFile file, String semester, String subject, String uploadedBy, Long userId) throws IOException {
         Document doc = Document.builder()
                 .fileName(file.getOriginalFilename())
                 .fileType(file.getContentType())
                 .semester(semester)
                 .subject(subject)
-                .uploadedBy(uploadedBy != null ? uploadedBy : "College Staff / Student")
+                .uploadedBy(uploadedBy != null ? uploadedBy : "Student / Faculty")
+                .userId(userId)
                 .build();
 
         Document savedDoc = documentRepository.save(doc);
 
-        // Extract PDF text per page using Apache PDFBox 3.x
         List<DocumentChunk> chunks = new ArrayList<>();
         byte[] bytes = file.getBytes();
 
@@ -52,13 +54,13 @@ public class PdfIngestionService {
 
                 if (pageText.isEmpty()) continue;
 
-                // Split page text into ~300 word logical chunks
+                // Split page text into ~750-800 character logical chunks
                 String[] paragraphs = pageText.split("\n\n");
                 StringBuilder currentChunk = new StringBuilder();
 
                 for (String para : paragraphs) {
                     currentChunk.append(para.trim()).append("\n");
-                    if (currentChunk.length() > 800) { // ~200-300 words
+                    if (currentChunk.length() > 750) {
                         DocumentChunk chunk = DocumentChunk.builder()
                                 .documentId(savedDoc.getId())
                                 .chunkIndex(chunkIndex++)

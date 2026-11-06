@@ -2,6 +2,7 @@ package com.college.assistant.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,25 +18,23 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "session_id", nullable = false)
+    @Column(name = "session_id", nullable = false, length = 120)
     private String sessionId;
 
     @Column(nullable = false, length = 20)
-    private String sender; // STUDENT or AI
+    private String sender; // 'STUDENT' or 'AI'
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
     @Column(name = "sources_json", columnDefinition = "TEXT")
     private String sourcesJson;
 
-    @Column(name = "timestamp")
+    @Column(updatable = false)
     private LocalDateTime timestamp;
 
     @PrePersist
     protected void onCreate() {
-        if (timestamp == null) {
-            timestamp = LocalDateTime.now();
-        }
+        this.timestamp = LocalDateTime.now();
     }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { X, UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, Sparkles, Layers } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function PdfUploadModal({
@@ -71,27 +71,28 @@ export default function PdfUploadModal({
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(8px)',
+      background: 'rgba(0, 0, 0, 0.82)',
+      backdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 50
+      zIndex: 60,
+      padding: '16px'
     }}>
-      <div className="glass-panel animate-fade-in" style={{
-        width: '90%',
+      <div className="glass-surface-elevated animate-fade-in" style={{
+        width: '100%',
         maxWidth: '520px',
-        padding: '28px',
+        padding: '32px',
         position: 'relative',
-        boxShadow: 'var(--shadow-lg)'
+        borderRadius: '24px'
       }}>
         {/* Close Button */}
         <button
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '18px',
-            right: '18px',
+            top: '20px',
+            right: '20px',
             background: 'transparent',
             color: 'var(--text-muted)'
           }}
@@ -99,33 +100,54 @@ export default function PdfUploadModal({
           <X size={20} />
         </button>
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <div style={{ background: 'var(--primary-gradient)', padding: '10px', borderRadius: '12px', display: 'flex' }}>
+        {/* Modal Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '22px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '14px',
+            background: 'var(--primary-gradient)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 6px 18px rgba(99, 102, 241, 0.4)'
+          }}>
             <UploadCloud size={24} color="#fff" />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
-              Upload College PDF / Notes
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>
+              Ingest College PDF Notes
             </h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              PDF will be parsed & chunked for RAG vector search
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Chunked & embedded for high-precision RAG question answering
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* File Drop Area */}
           <div
             onClick={() => document.getElementById('pdf-file-input').click()}
             style={{
-              border: '2px dashed var(--primary-glow, rgba(99, 102, 241, 0.4))',
-              borderRadius: '14px',
-              padding: '24px',
+              border: '2px dashed rgba(99, 102, 241, 0.45)',
+              borderRadius: '16px',
+              padding: '28px 20px',
               textAlign: 'center',
-              background: 'rgba(15, 23, 42, 0.5)',
+              background: 'rgba(11, 17, 32, 0.65)',
               cursor: 'pointer',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.background = 'rgba(20, 30, 58, 0.65)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.45)';
+              e.currentTarget.style.background = 'rgba(11, 17, 32, 0.65)';
             }}
           >
             <input
@@ -135,28 +157,34 @@ export default function PdfUploadModal({
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
-            <FileText size={36} color="var(--primary)" style={{ marginBottom: '8px' }} />
+            <FileText size={38} color="var(--accent-cyan)" />
             {file ? (
               <div>
-                <p style={{ fontWeight: 600, color: 'var(--accent-cyan)' }}>{file.name}</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p style={{ fontWeight: 700, color: '#fff', fontSize: '0.95rem' }}>{file.name}</p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
             ) : (
               <div>
-                <p style={{ fontWeight: 600 }}>Click to select syllabus PDF file</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Supports syllabus notes, question banks, or notice PDFs</p>
+                <p style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                  Click to select syllabus PDF
+                </p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Supports university syllabus, lecture slides, or exam blueprints
+                </p>
               </div>
             )}
           </div>
 
-          {/* Metadata Controls */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          {/* Academic Scope Configuration */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Semester</label>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                Target Semester
+              </label>
               <select
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
-                style={{ width: '100%' }}
+                style={{ width: '100%', fontSize: '0.88rem' }}
               >
                 {['1st Sem', '2nd Sem', '3rd Sem', '4th Sem', '5th Sem', '6th Sem', '7th Sem', '8th Sem'].map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -165,58 +193,82 @@ export default function PdfUploadModal({
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Subject</label>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
+                Course Subject
+              </label>
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                style={{ width: '100%' }}
+                style={{ width: '100%', fontSize: '0.88rem' }}
               >
-                {['Operating Systems', 'Computer Networks', 'DBMS', 'Software Engineering', 'Data Structures', 'AI & ML'].map(sub => (
+                {['Operating Systems', 'Compiler Design', 'Computer Networks', 'DBMS', 'Java', 'Data Structures', 'Physics', 'Software Engineering', 'AI & ML'].map(sub => (
                   <option key={sub} value={sub}>{sub}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Feedback Alerts */}
+          {/* Alerts */}
           {error && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #f87171', color: '#f87171', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#f87171',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              fontSize: '0.82rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
               <AlertCircle size={16} />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #34d399', color: '#34d399', padding: '10px 14px', borderRadius: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.15)',
+              border: '1px solid #10b981',
+              color: '#34d399',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              fontSize: '0.82rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
               <CheckCircle2 size={16} />
               <span>{successMsg}</span>
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit Action */}
           <button
             type="submit"
             disabled={loading}
             style={{
               background: 'var(--primary-gradient)',
               color: '#fff',
-              padding: '12px',
+              padding: '13px',
               borderRadius: '12px',
               fontWeight: 600,
+              fontSize: '0.92rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              marginTop: '8px'
+              boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)',
+              marginTop: '4px'
             }}
           >
             {loading ? (
               <>
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-                <span>Extracting Text & Chunking PDF...</span>
+                <span>Parsing PDF with Apache PDFBox...</span>
               </>
             ) : (
-              <span>Start RAG PDF Indexing</span>
+              <span>Process & Index PDF</span>
             )}
           </button>
         </form>

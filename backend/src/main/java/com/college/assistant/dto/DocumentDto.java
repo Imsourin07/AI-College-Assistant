@@ -1,15 +1,14 @@
 package com.college.assistant.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DocumentDto {
     private Long id;
     private String fileName;
@@ -18,5 +17,6 @@ public class DocumentDto {
     private String subject;
     private LocalDateTime uploadDate;
     private String uploadedBy;
+    private Long userId;
     private Integer chunkCount;
 }

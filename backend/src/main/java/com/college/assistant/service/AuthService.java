@@ -1,12 +1,15 @@
 package com.college.assistant.service;
 
-import com.college.assistant.config.JwtUtils;
 import com.college.assistant.dto.AuthRequest;
 import com.college.assistant.dto.AuthResponse;
 import com.college.assistant.dto.RegisterRequest;
 import com.college.assistant.entity.User;
+import com.college.assistant.exception.ResourceNotFoundException;
 import com.college.assistant.repository.UserRepository;
+import com.college.assistant.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,25 +25,28 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email address is already registered!");
+            throw new IllegalArgumentException("An account with this email already exists: " + request.getEmail());
         }
 
         User user = User.builder()
                 .name(request.getName())
-                .email(request.getEmail())
+                .email(request.getEmail().toLowerCase())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .semester(request.getSemester() != null ? request.getSemester() : "5th Sem")
                 .role("STUDENT")
                 .build();
 
         User savedUser = userRepository.save(user);
-        String token = jwtUtils.generateToken(savedUser.getEmail());
+        String token = jwtUtils.generateToken(savedUser.getEmail(), savedUser.getId());
 
         return AuthResponse.builder()
                 .token(token)
-                .userId(savedUser.getId())
+                .id(savedUser.getId())
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
                 .semester(savedUser.getSemester())
@@ -49,18 +55,18 @@ public class AuthService {
     }
 
     public AuthResponse login(AuthRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password!"));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail().toLowerCase(), request.getPassword())
+        );
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password!");
-        }
+        User user = userRepository.findByEmail(request.getEmail().toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
 
-        String token = jwtUtils.generateToken(user.getEmail());
+        String token = jwtUtils.generateToken(user.getEmail(), user.getId());
 
         return AuthResponse.builder()
                 .token(token)
-                .userId(user.getId())
+                .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .semester(user.getSemester())
@@ -69,7 +75,7 @@ public class AuthService {
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+        return userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 }

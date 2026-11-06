@@ -17,7 +17,7 @@ public class RagEngineService {
 
     public List<ScoredChunk> retrieveRelevantChunks(String query, String semester, String subject, int topK) {
         List<DocumentChunk> allChunks;
-        
+
         if (semester != null || subject != null) {
             allChunks = chunkRepository.findBySemesterAndSubjectFilter(semester, subject);
             if (allChunks.isEmpty()) {
@@ -34,49 +34,73 @@ public class RagEngineService {
         String normalizedQuery = query.toLowerCase();
         Set<String> queryTokens = extractTokens(normalizedQuery);
 
+        if (queryTokens.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<ScoredChunk> scoredList = new ArrayList<>();
 
         for (DocumentChunk chunk : allChunks) {
+            // Subject boundary check: if subject is specified and chunk has a defined different subject, skip it
+            if (subject != null && !subject.equalsIgnoreCase("General") && chunk.getSubject() != null) {
+                if (!chunk.getSubject().equalsIgnoreCase(subject) && !chunk.getSubject().equalsIgnoreCase("General")) {
+                    continue;
+                }
+            }
+
             String content = chunk.getContent().toLowerCase();
             Set<String> contentTokens = extractTokens(content);
 
-            // Compute TF-IDF style keyword match score
-            double matchScore = 0.0;
+            double textScore = 0.0;
             for (String qToken : queryTokens) {
                 if (content.contains(qToken)) {
-                    matchScore += 1.5;
+                    textScore += 1.5;
                 }
                 if (contentTokens.contains(qToken)) {
-                    matchScore += 2.0;
+                    textScore += 2.0;
                 }
             }
 
-            // Bonus for semester & subject query match
+            // CRITICAL FIX: If the document text has zero match with student's non-stopword query tokens,
+            // NEVER return it as a hit just because semester or subject metadata matched.
+            if (textScore <= 0.0) {
+                continue;
+            }
+
+            double totalScore = textScore;
             if (semester != null && chunk.getSemester() != null && chunk.getSemester().equalsIgnoreCase(semester)) {
-                matchScore += 1.0;
+                totalScore += 0.5;
             }
             if (subject != null && chunk.getSubject() != null && chunk.getSubject().equalsIgnoreCase(subject)) {
-                matchScore += 1.0;
+                totalScore += 1.0;
             }
 
-            if (matchScore > 0) {
-                scoredList.add(new ScoredChunk(chunk, matchScore));
-            }
+            scoredList.add(new ScoredChunk(chunk, totalScore));
         }
 
-        // Sort descending by score
         scoredList.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
-
         return scoredList.stream().limit(topK).collect(Collectors.toList());
     }
 
+    private static final Set<String> STOPWORDS = Set.of(
+            "what", "is", "the", "a", "an", "in", "of", "to", "for", "and", "or",
+            "how", "why", "can", "you", "tell", "me", "explain", "about", "with",
+            "at", "by", "from", "up", "down", "on", "off", "over", "under", "again",
+            "further", "then", "once", "here", "there", "when", "where", "all", "any",
+            "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor",
+            "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can",
+            "will", "just", "don", "should", "now"
+    );
+
     private Set<String> extractTokens(String text) {
-        String cleaned = text.replaceAll("[^a-zA-Z0-9অ-ৱা-হ0-9]", " ");
+        // Bengali Unicode range: \u0980-\u09FF plus alphanumeric
+        String cleaned = text.replaceAll("[^a-zA-Z0-9\\u0980-\\u09FF]", " ");
         String[] words = cleaned.split("\\s+");
         Set<String> tokens = new HashSet<>();
         for (String w : words) {
-            if (w.length() >= 2) {
-                tokens.add(w.toLowerCase());
+            String lower = w.toLowerCase().trim();
+            if (lower.length() >= 3 && !STOPWORDS.contains(lower)) {
+                tokens.add(lower);
             }
         }
         return tokens;
@@ -99,12 +123,12 @@ public class RagEngineService {
             if (excerpt.length() > 180) {
                 excerpt = excerpt.substring(0, 180) + "...";
             }
-            return new SourceInfo(
-                    chunk.getDocumentName() != null ? chunk.getDocumentName() : "College_Syllabus.pdf",
-                    chunk.getPageNumber() != null ? chunk.getPageNumber() : 1,
-                    excerpt,
-                    score
-            );
+            return SourceInfo.builder()
+                    .fileName(chunk.getDocumentName() != null ? chunk.getDocumentName() : "College_Document.pdf")
+                    .pageNumber(chunk.getPageNumber() != null ? chunk.getPageNumber() : 1)
+                    .excerpt(excerpt)
+                    .score(score)
+                    .build();
         }
     }
 }

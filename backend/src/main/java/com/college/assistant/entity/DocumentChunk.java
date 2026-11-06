@@ -25,7 +25,7 @@ public class DocumentChunk {
     @Column(name = "page_number")
     private Integer pageNumber;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(length = 50)

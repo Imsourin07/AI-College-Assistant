@@ -1,0 +1,7 @@
+{
+  "name": "AI College Assistant",
+  "description": "Smart RAG grounded college syllabus & notes assistant supporting Bengali, English, and Banglish queries with PDF ingestion.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
